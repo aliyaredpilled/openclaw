@@ -93,8 +93,8 @@ const COPILOT_REFRESH_MIN_DELAY_MS = 5 * 1000;
 // Keep overload pacing noticeable enough to avoid tight retry bursts, but short
 // enough that fallback still feels responsive within a single turn.
 const OVERLOAD_FAILOVER_BACKOFF_POLICY: BackoffPolicy = {
-  initialMs: 250,
-  maxMs: 1_500,
+  initialMs: 5_000,
+  maxMs: 30_000,
   factor: 2,
   jitter: 0.2,
 };
@@ -1193,6 +1193,25 @@ export async function runEmbeddedPiAgent(
                   `isCompactionFailure=${isCompactionFailure} hasOversizedToolResults=unknown ` +
                   `attempt=${overflowCompactionAttempts} maxAttempts=${MAX_OVERFLOW_COMPACTION_ATTEMPTS}`,
               );
+            }
+            // Notify plugins about context overflow (before_reset hook)
+            const overflowHookRunner = getGlobalHookRunner();
+            if (overflowHookRunner?.hasHooks("before_reset")) {
+              void overflowHookRunner
+                .runBeforeReset(
+                  {
+                    reason: "context_overflow",
+                    sessionFile: session.sessionFile,
+                    messages: session.messages,
+                  },
+                  {
+                    sessionKey: params.sessionKey,
+                    agentId: params.agentId,
+                    sessionId: sessionIdUsed,
+                    workspaceDir: resolvedWorkspace,
+                  },
+                )
+                .catch(() => {});
             }
             const kind = isCompactionFailure ? "compaction_failure" : "context_overflow";
             return {
