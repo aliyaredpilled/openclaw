@@ -7,6 +7,12 @@ import { makeZeroUsageSnapshot } from "./usage.js";
 export function handleAutoCompactionStart(ctx: EmbeddedPiSubscribeContext) {
   ctx.state.compactionInFlight = true;
   ctx.ensureCompactionPromise();
+  ctx.log.info(
+    `[compaction-trace] handleAutoCompactionStart: sessionKey=${ctx.params.sessionKey} sessionId=${ctx.params.sessionId} runId=${ctx.params.runId} msgCount=${ctx.params.session.messages?.length ?? "?"}`,
+  );
+  ctx.log.info(
+    `[compaction-trace] hookRunner exists=${!!getGlobalHookRunner()} hasBeforeCompaction=${getGlobalHookRunner()?.hasHooks("before_compaction") ?? "N/A"}`,
+  );
   ctx.log.debug(`embedded run compaction start: runId=${ctx.params.runId}`);
   emitAgentEvent({
     runId: ctx.params.runId,
@@ -58,8 +64,14 @@ export function handleAutoCompactionEnd(
   if (willRetry) {
     ctx.noteCompactionRetry();
     ctx.resetForCompactionRetry();
+    ctx.log.info(
+      `[compaction-trace] handleAutoCompactionEnd: willRetry=true sessionKey=${ctx.params.sessionKey} runId=${ctx.params.runId}`,
+    );
     ctx.log.debug(`embedded run compaction retry: runId=${ctx.params.runId}`);
   } else {
+    ctx.log.info(
+      `[compaction-trace] handleAutoCompactionEnd: willRetry=false hasResult=${hasResult} wasAborted=${wasAborted} sessionKey=${ctx.params.sessionKey}`,
+    );
     ctx.maybeResolveCompactionWait();
     clearStaleAssistantUsageOnSessionMessages(ctx);
   }

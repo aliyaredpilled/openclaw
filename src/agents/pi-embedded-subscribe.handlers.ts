@@ -51,9 +51,15 @@ export function createEmbeddedPiSessionEventHandler(ctx: EmbeddedPiSubscribeCont
         handleAgentStart(ctx);
         return;
       case "auto_compaction_start":
+        ctx.log.info(
+          `[compaction-trace] SDK event=auto_compaction_start sessionKey=${ctx.params.sessionKey} runId=${ctx.params.runId}`,
+        );
         handleAutoCompactionStart(ctx);
         return;
       case "auto_compaction_end":
+        ctx.log.info(
+          `[compaction-trace] SDK event=auto_compaction_end sessionKey=${ctx.params.sessionKey} runId=${ctx.params.runId}`,
+        );
         handleAutoCompactionEnd(ctx, evt as never);
         return;
       case "agent_end":

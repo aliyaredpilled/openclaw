@@ -955,6 +955,11 @@ export async function runEmbeddedPiAgent(
           lastRunPromptUsage = lastAssistantUsage ?? attemptUsage;
           lastTurnTotal = lastAssistantUsage?.total ?? attemptUsage?.total;
           const attemptCompactionCount = Math.max(0, attempt.compactionCount ?? 0);
+          if (attemptCompactionCount > 0) {
+            log.info(
+              `[compaction-trace] attempt finished with compactionCount=${attemptCompactionCount} sessionKey=${params.sessionKey}`,
+            );
+          }
           autoCompactionCount += attemptCompactionCount;
           const activeErrorContext = resolveActiveErrorContext({
             lastAssistant,
