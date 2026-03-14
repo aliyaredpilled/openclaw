@@ -44,7 +44,9 @@ export function queueEmbeddedPiMessage(sessionId: string, text: string): boolean
     diag.debug(`queue message failed: sessionId=${sessionId} reason=no_active_run`);
     return false;
   }
-  if (!handle.isStreaming()) {
+  // Steer-patch: skip streaming check — allow steer during tool execution
+  // SDK agent-loop checks steeringQueue between tool calls safely
+  if ((false as boolean) && !handle.isStreaming()) {
     diag.debug(`queue message failed: sessionId=${sessionId} reason=not_streaming`);
     return false;
   }

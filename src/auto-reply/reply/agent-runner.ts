@@ -194,8 +194,21 @@ export async function runReplyAgent(params: {
     }
   };
 
-  if (shouldSteer && isStreaming) {
+  console.info(
+    "[steer-patch] shouldSteer=%s isActive=%s isStreaming=%s sessionId=%s",
+    shouldSteer,
+    isActive,
+    isStreaming,
+    followupRun.run.sessionId,
+  );
+  // Allow steer even when not actively streaming (tool execution, etc.)
+  if (shouldSteer && isActive) {
     const steered = queueEmbeddedPiMessage(followupRun.run.sessionId, followupRun.prompt);
+    console.info(
+      "[steer-patch] queueEmbeddedPiMessage result: steered=%s shouldFollowup=%s",
+      steered,
+      shouldFollowup,
+    );
     if (steered && !shouldFollowup) {
       await touchActiveSessionEntry();
       typing.cleanup();
